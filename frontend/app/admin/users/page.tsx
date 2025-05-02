@@ -178,56 +178,61 @@ export default function ManageUsersPage() {
   }
 
   const handleDeleteUser = async () => {
-    if (!userToDelete) return
-
+    if (!userToDelete) return;
+  
     try {
-      const token = localStorage.getItem("token")
-      if (!token) throw new Error("No authentication token found")
-
-      await userManagementApi.manageUser.delete({ id: userToDelete }, token)
-      setUsers(users.filter((user) => user.id !== userToDelete))
-      setUserToDelete(null)
-      setIsDeleteDialogOpen(false)
-      showSuccessToast({ title: "User deleted successfully" })
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
+  
+      await userManagementApi.manageUser.delete({ id: String(userToDelete) }, token);
+      setUsers(users.filter((user) => user.id !== userToDelete));
+      setUserToDelete(null);
+      setIsDeleteDialogOpen(false);
+      showSuccessToast({ title: "User deleted successfully" });
     } catch (error) {
       showErrorToast({
         title: "Failed to delete user",
-        description: error instanceof Error ? error.message : "Unknown error"
-      })
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     }
-  }
+  };
 
   const handleToggleUserStatus = async (userId: number) => {
     try {
-      const token = localStorage.getItem("token")
-      if (!token) throw new Error("No authentication token found")
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
   
-      const user = users.find(u => u.id === userId)
-      if (!user) return
+      const user = users.find((u) => u.id === userId);
+      if (!user) return;
   
-      const newStatus = !user.is_active
+      const newStatus = !user.is_active;
   
       if (newStatus) {
         // User will be activated → call unfreeze
         console.log("Unfreezing user with ID:", userId);
-        await userManagementApi.freezeUser.unfreeze({ id: String(userId) }, token)
+        await userManagementApi.freezeUser.unfreeze({ id: String(userId) }, token);
       } else {
         // User will be frozen → call freeze
-        await userManagementApi.freezeUser.freeze({ id: String(userId) }, token)
+        console.log("Freezing user with ID:", userId);
+        await userManagementApi.freezeUser.freeze({ id: String(userId) }, token);
       }
   
-      setUsers(users.map(u => 
-        u.id === userId ? { ...u, is_active: newStatus } : u
-      ))
+      setUsers(
+        users.map((u) =>
+          u.id === userId ? { ...u, is_active: newStatus } : u
+        )
+      );
   
-      showSuccessToast({ title: `User ${newStatus ? "activated" : "frozen"}` })
+      showSuccessToast({
+        title: `User ${newStatus ? "activated" : "frozen"}`,
+      });
     } catch (error) {
       showErrorToast({
         title: "Failed to update user status",
-        description: error instanceof Error ? error.message : "Unknown error"
-      })
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     }
-  }
+  };
   
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

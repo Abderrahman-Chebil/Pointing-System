@@ -63,24 +63,29 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <div className="flex min-h-screen flex-col bg-[#cbf3f0] w-full"> {/* Updated bg to match first page */}
         {/* Updated Header with dark blue */}
         <header className="sticky top-0 z-50 w-full bg-[#3d5a80] text-white shadow-md">
-          <div className="container flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-xl">
-              <Link href="/patient/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-                <div className="relative flex items-center">
-                  <div className="absolute top-0 left-0 w-5 h-5 bg-white rounded-full"></div>
-                  <div className="absolute top-[10px] left-[21px] w-2 h-2 bg-white rounded-full"></div>
-                  <div className="absolute top-[20px] left-[21px] w-3 h-3 bg-white rounded-full"></div>
-                  <div className="w-[28px] h-[48px]"></div> {/* spacer to give size to logo container */}
-                </div>
-              </Link>
-            </div>
+  <div className="container flex h-16 items-center justify-between">
+    <div className="flex items-center gap-2 font-bold text-xl">
+      <Link href="/admin/profile" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+        <div className="relative flex items-center">
+          <div className="absolute top-0 left-0 w-5 h-5 bg-white rounded-full"></div>
+          <div className="absolute top-[10px] left-[21px] w-2 h-2 bg-white rounded-full"></div>
+          <div className="absolute top-[20px] left-[21px] w-3 h-3 bg-white rounded-full"></div>
+          <div className="w-[28px] h-[48px]"></div> {/* spacer to give size to logo container */}
+        </div>
+      </Link>
+    </div>
 
-            <div className="flex items-center gap-4">
-              <NotificationsDropdown />
-              <SidebarTrigger className="md:hidden text-white hover:bg-[#1d3557]" />
-            </div>
-          </div>
-        </header>
+    <div className="flex items-center gap-4">
+      {/* Button to redirect to Django admin */}
+      <Link href="http://localhost:8000/admin/login/" target="_blank" rel="noopener noreferrer">
+        <button className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition">
+Super User        </button>
+      </Link>
+      <NotificationsDropdown />
+      <SidebarTrigger className="md:hidden text-white hover:bg-[#1d3557]" />
+    </div>
+  </div>
+</header>
 
         <div className="flex flex-1 w-full">
           <Sidebar variant="inset" collapsible="icon">

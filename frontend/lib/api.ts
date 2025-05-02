@@ -67,6 +67,11 @@ export const notificationApi = {
 // User Management APIs
 export const userManagementApi = {
   manageUser: {
+    delete: (data: { id: string }, token: string) =>
+      axios.delete(`${API_BASE_URL}/users/manage_user/`, {
+        params: data, // Send the ID as a query parameter
+        headers: { Authorization: `Token ${token}` },
+      }),
     create: (data: {
       username: string;
       first_name: string;
@@ -110,10 +115,12 @@ export const userManagementApi = {
         headers: { Authorization: `Token ${token}` }
       }),
     
-    unfreeze: (data: { id: string }, token: string) => 
-      axios.post(`${API_BASE_URL}/users/unfreeze_user/`, data, {
-        headers: { Authorization: `Token ${token}` },
-      }),
+    unfreeze: (data: { id: string }, token: string) =>
+        axios.delete(`${API_BASE_URL}/users/freeze_user/`, {
+          params: data, // Send the ID as a query parameter
+          headers: { Authorization: `Token ${token}` },
+        }),
+        
   },
   
   changeTeam: (data: { id: string; team: string }, token: string) => 

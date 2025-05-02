@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 180 20% 99%;
+    --foreground: 180 10% 10%;
+
+    --card: 180 20% 99%;
+    --card-foreground: 180 10% 10%;
+
+    --popover: 180 20% 99%;
+    --popover-foreground: 180 10% 10%;
+
+    --primary: 172 66% 40%;
+    --primary-foreground: 172 100% 97%;
+
+    --secondary: 38 92% 50%;
+    --secondary-foreground: 38 100% 97%;
+
+    --muted: 172 10% 96%;
+    --muted-foreground: 172 5% 40%;
+
+    --accent: 172 30% 94%;
+    --accent-foreground: 172 60% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 172 20% 88%;
+    --input: 172 20% 88%;
+    --ring: 172 66% 40%;
+
+    --radius: 1rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 172 10% 20%;
+    --sidebar-border: 172 20% 88%;
+    --sidebar-accent: 172 30% 94%;
+    --sidebar-accent-foreground: 172 60% 20%;
+    --sidebar-ring: 172 66% 40%;
+  }
+
+  .dark {
+    --background: 180 10% 5%;
+    --foreground: 180 10% 95%;
+
+    --card: 180 10% 7%;
+    --card-foreground: 180 10% 95%;
+
+    --popover: 180 10% 5%;
+    --popover-foreground: 180 10% 95%;
+
+    --primary: 172 66% 40%;
+    --primary-foreground: 172 100% 97%;
+
+    --secondary: 38 92% 50%;
+    --secondary-foreground: 38 100% 97%;
+
+    --muted: 172 10% 15%;
+    --muted-foreground: 172 5% 65%;
+
+    --accent: 172 30% 15%;
+    --accent-foreground: 172 60% 90%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 172 20% 20%;
+    --input: 172 20% 20%;
+    --ring: 172 66% 40%;
+
+    --sidebar-background: 172 60% 10%;
+    --sidebar-foreground: 172 10% 95%;
+    --sidebar-border: 172 40% 20%;
+    --sidebar-accent: 172 50% 20%;
+    --sidebar-accent-foreground: 172 10% 95%;
+    --sidebar-ring: 172 66% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .layout-container {
+    @apply w-full max-w-full;
+  }
+
+  .health-card {
+    @apply relative overflow-hidden rounded-2xl border bg-card p-6 shadow-soft transition-all duration-300 hover:shadow-glow;
+  }
+
+  .health-card::before {
+    content: "";
+    @apply absolute -right-4 -top-4 h-16 w-16 rounded-full bg-gradient-primary opacity-10;
+  }
+
+  .health-card-secondary {
+    @apply relative overflow-hidden rounded-2xl border bg-card p-6 shadow-soft transition-all duration-300 hover:shadow-glow-secondary;
+  }
+
+  .health-card-secondary::before {
+    content: "";
+    @apply absolute -right-4 -top-4 h-16 w-16 rounded-full bg-gradient-secondary opacity-10;
+  }
+
+  .health-icon-container {
+    @apply flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-md;
+  }
+
+  .health-icon-container-secondary {
+    @apply flex h-12 w-12 items-center justify-center rounded-full bg-gradient-secondary text-secondary-foreground shadow-md;
+  }
+
+  .health-stat {
+    @apply text-3xl font-bold text-primary-700 dark:text-primary-300;
+  }
+
+  .health-stat-secondary {
+    @apply text-3xl font-bold text-secondary-600 dark:text-secondary-400;
+  }
+
+  .health-heading {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent;
+  }
+
+  .health-heading-secondary {
+    @apply bg-gradient-to-r from-secondary-500 to-secondary-600 bg-clip-text text-transparent;
+  }
+}
+

@@ -48,20 +48,20 @@ export const authApi = {
 // Notification APIs
 export const notificationApi = {
   getNotifications: (token: string) => 
-    axios.get(`${API_BASE_URL}/users/notifications/`, {
+    axios.get(`${API_BASE_URL}/notifications/`, {  // Removed 'users/' from path
       headers: { Authorization: `Token ${token}` }
     }),
   
-  deleteNotification: (data: { id: string }, token: string) => 
-    axios.delete(`${API_BASE_URL}/users/notifications/`, {
-      params: data,
+  deleteNotification: (id: string, token: string) => 
+    axios.delete(`${API_BASE_URL}/notifications/`, {  // Removed 'users/' from path
+      params: { id },  // Send the ID as a query parameter
       headers: { Authorization: `Token ${token}` }
     }),
 
   getNotificationsCount: (token: string) => 
-    axios.get(`${API_BASE_URL}/users/notifications_count/`, {
-      headers: { Authorization: `Token ${token}` }
-    }),
+      axios.get(`${API_BASE_URL}/notifications_count/`, { 
+        headers: { Authorization: `Token ${token}` }
+      }),
 };
 
 // User Management APIs

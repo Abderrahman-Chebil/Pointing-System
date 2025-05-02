@@ -89,7 +89,7 @@ export function NotificationsDropdown() {
   const handleDeleteNotification = async (id: string) => {
     try {
       const token = localStorage.getItem("authToken") || "";
-      await notificationApi.deleteNotification({ id }, token)
+      await notificationApi.deleteNotification(id, token)
       setNotifications(notifications.filter((n) => n.id !== id))
       fetchNotificationCount() // Refresh count after deletion
 
@@ -161,4 +161,3 @@ export function NotificationsDropdown() {
     </DropdownMenu>
   )
 }
-

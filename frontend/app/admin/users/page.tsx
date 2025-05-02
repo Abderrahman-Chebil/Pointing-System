@@ -37,13 +37,15 @@ interface User {
   email: string
   first_name: string
   last_name: string
-  role: 'employee' | 'manager' | 'chief'
+  role: 'employee' 
   team?: string
   is_active: boolean
   last_login?: string
   date_joined: string
   phone?: string
   job?: string
+  is_manager: boolean
+  is_chief: boolean
 }
 
 interface Team {
@@ -67,11 +69,12 @@ export default function ManageUsersPage() {
     first_name: "",
     last_name: "",
     email: "",
-    role: "employee" as const,
     team: "",
     phone: "",
     job: "",
     confirmPassword: "",
+    is_manager: false,
+    is_chief: false,
     is_active: true
   })
 
@@ -120,62 +123,64 @@ export default function ManageUsersPage() {
 
   // Filter users based on search term and filters
   const filteredUsers = users.filter((user) => {
-    const fullName = `${user.first_name} ${user.last_name}`.toLowerCase()
+    const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
     const matchesSearch =
       fullName.includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.team && user.team.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.job && user.job.toLowerCase().includes(searchTerm.toLowerCase()))
+      (user.job && user.job.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesRole = selectedRole ? user.role === selectedRole : true
-    const matchesStatus = selectedStatus 
-      ? (selectedStatus === "active" && user.is_active) || 
+    const matchesRole = selectedRole ? user.role === selectedRole : true;
+    const matchesStatus = selectedStatus
+      ? (selectedStatus === "active" && user.is_active) ||
         (selectedStatus === "inactive" && !user.is_active)
-      : true
+      : true;
 
-    return matchesSearch && matchesRole && matchesStatus
-  })
+    return matchesSearch && matchesRole && matchesStatus;
+  });
 
   const handleCreateUser = async () => {
     try {
-      const token = localStorage.getItem("token")
-      if (!token) throw new Error("No authentication token found")
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
 
-      
+      // Prepare user data
       const userData = {
         username: newUser.email,
         first_name: newUser.first_name,
         last_name: newUser.last_name,
         email: newUser.email,
-        role: newUser.role,
         team: newUser.team,
         phone: newUser.phone,
         job: newUser.job,
         is_active: newUser.is_active,
+        is_manager: newUser.is_manager, // Use is_manager directly
+        is_chief: newUser.is_chief,     // Use is_chief directly
       };
 
-      const response = await userManagementApi.manageUser.create(userData, token)
-      setUsers([...users, response.data as User])
-      setIsCreateUserOpen(false)
+      const response = await userManagementApi.manageUser.create(userData, token);
+      setUsers([...users, response.data as User]);
+      setIsCreateUserOpen(false);
       setNewUser({
         first_name: "",
         last_name: "",
         email: "",
-        role: "employee",
         team: "",
         phone: "",
         job: "",
         confirmPassword: "",
-        is_active: true
-      })
-      showSuccessToast({ title: "User created successfully" })
+        is_manager: false,
+        is_chief: false,
+        is_active: true,
+      });
+      showSuccessToast({ title: "User created successfully" });
     } catch (error) {
       showErrorToast({
         title: "Failed to create user",
-        description: error instanceof Error ? error.message : "Unknown error"
-      })
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     }
-  }
+  };
 
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
@@ -250,6 +255,22 @@ export default function ManageUsersPage() {
     })
   }
 
+  const handleRoleCheckboxChange = (role: 'manager' | 'chief') => {
+    if (role === 'chief') {
+      setNewUser({
+        ...newUser,
+        is_chief: !newUser.is_chief,
+        is_manager: false // Chief can't also be manager
+      });
+    } else {
+      setNewUser({
+        ...newUser,
+        is_manager: !newUser.is_manager,
+        is_chief: false // Manager can't also be chief
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return "-"
     const date = new Date(dateString)
@@ -262,14 +283,11 @@ export default function ManageUsersPage() {
     }).format(date)
   }
 
-  const getRoleDisplayName = (role: string) => {
-    switch(role) {
-      case 'employee': return 'Employee'
-      case 'manager': return 'Manager'
-      case 'chief': return 'Chief'
-      default: return role
-    }
-  }
+  const getRoleDisplayName = (user: User) => {
+    if (user.is_chief) return "Chief";
+    if (user.is_manager) return "Manager";
+    return "Employee"; // Default role
+  };
 
   if (isLoading) {
     return (
@@ -360,23 +378,23 @@ export default function ManageUsersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-  {filteredUsers.length > 0 ? (
-    filteredUsers.map((user) => (
-      <TableRow key={`user-${user.id}`}>  {/* Added prefix to ensure uniqueness */}
-        <TableCell>
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarFallback>
-                {`${user.first_name?.charAt(0) || ""}${user.last_name?.charAt(0) || ""}`}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="font-medium">{`${user.first_name} ${user.last_name}`}</div>
-              <div className="text-sm text-[#0A0908]/70">{user.email}</div>
-            </div>
-          </div>
-        </TableCell>
-                        <TableCell>{getRoleDisplayName(user.role)}</TableCell>
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <TableRow key={`user-${user.id}`}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar>
+                              <AvatarFallback>
+                                {`${user.first_name?.charAt(0) || ""}${user.last_name?.charAt(0) || ""}`}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{`${user.first_name} ${user.last_name}`}</div>
+                              <div className="text-sm text-[#0A0908]/70">{user.email}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{getRoleDisplayName(user)}</TableCell>                        
                         <TableCell>{user.team || '-'}</TableCell>
                         <TableCell>{user.job || '-'}</TableCell>
                         <TableCell>
@@ -432,10 +450,10 @@ export default function ManageUsersPage() {
                     ))
                   ) : (
                     <TableRow>
-      <TableCell colSpan={7} className="text-center py-6 text-[#0A0908]/70">
-        No users found matching your search criteria
-      </TableCell>
-    </TableRow>
+                      <TableCell colSpan={7} className="text-center py-6 text-[#0A0908]/70">
+                        No users found matching your search criteria
+                      </TableCell>
+                    </TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -494,22 +512,6 @@ export default function ManageUsersPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <Select
-                  value={newUser.role}
-                  onValueChange={(value) => handleSelectChange("role", value)}
-                >
-                  <SelectTrigger id="role">
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="employee">Employee</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="chief">Chief</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="team">Team</Label>
                 <Select
                   value={newUser.team}
@@ -551,7 +553,33 @@ export default function ManageUsersPage() {
                 />
               </div>
             </div>
-           
+            
+            {/* Role Selection Checkboxes */}
+            <div className="space-y-3 pt-2">
+              <Label>Role</Label>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="is_manager" 
+                    checked={newUser.is_manager}
+                    onCheckedChange={() => handleRoleCheckboxChange('manager')}
+                  />
+                  <Label htmlFor="is_manager">Manager</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="is_chief" 
+                    checked={newUser.is_chief}
+                    onCheckedChange={() => handleRoleCheckboxChange('chief')}
+                  />
+                  <Label htmlFor="is_chief">Chief</Label>
+                </div>
+              </div>
+              {newUser.is_manager || newUser.is_chief ? null : (
+                <p className="text-sm text-muted-foreground">Default role is Employee</p>
+              )}
+            </div>
+
             <div className="flex items-center space-x-2 pt-2">
               <Switch
                 id="is_active"
@@ -571,9 +599,9 @@ export default function ManageUsersPage() {
               className="bg-[#2ec4b6] hover:bg-[#2ec4b6]/90" 
               onClick={handleCreateUser}
               disabled={
-              !newUser.first_name ||
-              !newUser.last_name ||
-              !newUser.email
+                !newUser.first_name ||
+                !newUser.last_name ||
+                !newUser.email
               }
             >
               Create User

@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { useRouter } from "next/navigation"
 import { authApi, profileApi } from "@/lib/api"
 
-type Employee = {  // Changed from User to Employee
+type Employee = {
   id: number
   email: string
   first_name: string
@@ -18,35 +18,42 @@ type Employee = {  // Changed from User to Employee
   is_active?: boolean
   is_chief?: boolean
   is_manager?: boolean
-  role: "employee" | "manager" | "chief" | "admin" // Changed default role to "employee"
+  role: "employee" | "manager" | "chief" | "admin"
 }
 
 type AuthContextType = {
-  employee: Employee | null  // Changed from user to employee
+  employee: Employee | null
   token: string | null
   isLoading: boolean
+  isChief: boolean | null
+  isManager: boolean | null
   login: (email: string, password: string, role?: string) => Promise<void>
   logout: () => void
-  updateEmployee: (employeeData: Partial<Employee>) => void  // Changed from updateUser
-  refreshEmployee: () => Promise<void>  // Changed from refreshUser
+  updateEmployee: (employeeData: Partial<Employee>) => void
+  refreshEmployee: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [employee, setEmployee] = useState<Employee | null>(null)  // Changed from user
+  const [employee, setEmployee] = useState<Employee | null>(null)
   const [token, setToken] = useState<string | null>(null)
+  const [isChief, setIsChief] = useState<boolean | null>(null)
+  const [isManager, setIsManager] = useState<boolean | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   // Initialize auth state from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token")
-    const storedEmployee = localStorage.getItem("employee")  // Changed from user
+    const storedEmployee = localStorage.getItem("employee")
 
     if (storedToken && storedEmployee) {
       setToken(storedToken)
-      setEmployee(JSON.parse(storedEmployee))
+      const parsedEmployee = JSON.parse(storedEmployee)
+      setEmployee(parsedEmployee)
+      setIsChief(parsedEmployee.is_chief || false)
+      setIsManager(parsedEmployee.is_manager || false)
     }
 
     setIsLoading(false)
@@ -59,27 +66,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [token, employee])
 
-  const refreshEmployee = async () => {  // Changed from refreshUser
+  const refreshEmployee = async () => {
     if (!token) return
 
     try {
       const employeeData = await profileApi.getMyProfile(token)
-      // Assert the type of employeeData.data
       const data = employeeData.data as Employee
+      
       // Determine role with "employee" as default
       let role: "employee" | "manager" | "chief" | "admin" = "employee"
       if (data.is_chief) role = "chief"
       else if (data.is_manager) role = "manager"
       
-      const updatedEmployee = {  // Changed from updatedUser
+      const updatedEmployee = {
         ...data,
         role
       }
 
       setEmployee(updatedEmployee)
-      localStorage.setItem("employee", JSON.stringify(updatedEmployee))  // Changed from user
+      setIsChief(data.is_chief || false)
+      setIsManager(data.is_manager || false)
+      localStorage.setItem("employee", JSON.stringify(updatedEmployee))
     } catch (error) {
-      console.error("Failed to fetch employee profile:", error)  // Updated error message
+      console.error("Failed to fetch employee profile:", error)
       if (error instanceof Error && error.message.includes("401")) {
         logout()
       }
@@ -96,13 +105,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("token", authToken)
 
       // Set minimal employee object until full profile is fetched
-      setEmployee({
+      const newEmployee = {
         id: 0,
         email,
         first_name: "",
         last_name: "",
-        role: authRole as "employee" | "manager" | "chief" | "admin"  // Updated role type
-      })
+        role: authRole as "employee" | "manager" | "chief" | "admin",
+        is_chief: authRole === "chief",
+        is_manager: authRole === "manager"
+      }
+
+      setEmployee(newEmployee)
+      setIsChief(authRole === "chief")
+      setIsManager(authRole === "manager")
+      localStorage.setItem("employee", JSON.stringify(newEmployee))
 
       // Redirect based on role
       if (authRole === "admin") {
@@ -112,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (authRole === "chief") {
         router.push("/chief/profile")
       } else {
-        router.push("/employee/profile")  // Default route for employees
+        router.push("/employee/profile")
       }
     } catch (error) {
       console.error("Login failed:", error)
@@ -123,30 +139,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    setEmployee(null)  // Changed from setUser
+    setEmployee(null)
     setToken(null)
+    setIsChief(null)
+    setIsManager(null)
     localStorage.removeItem("token")
-    localStorage.removeItem("employee")  // Changed from user
+    localStorage.removeItem("employee")
     router.push("/login")
   }
 
-  const updateEmployee = (employeeData: Partial<Employee>) => {  // Changed from updateUser
+  const updateEmployee = (employeeData: Partial<Employee>) => {
     if (employee) {
-      const updatedEmployee = { ...employee, ...employeeData }  // Changed from updatedUser
+      const updatedEmployee = { ...employee, ...employeeData }
       setEmployee(updatedEmployee)
-      localStorage.setItem("employee", JSON.stringify(updatedEmployee))  // Changed from user
+      setIsChief(employeeData.is_chief ?? employee.is_chief ?? false)
+      setIsManager(employeeData.is_manager ?? employee.is_manager ?? false)
+      localStorage.setItem("employee", JSON.stringify(updatedEmployee))
     }
   }
 
   return (
     <AuthContext.Provider value={{ 
-      employee,  // Changed from user
+      employee,
       token, 
-      isLoading, 
+      isLoading,
+      isChief,
+      isManager,
       login, 
       logout, 
-      updateEmployee,  // Changed from updateUser
-      refreshEmployee  // Changed from refreshUser
+      updateEmployee,
+      refreshEmployee
     }}>
       {children}
     </AuthContext.Provider>
@@ -158,4 +180,5 @@ export function useAuth() {
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider")
   }
-  return context}
+  return context
+}
